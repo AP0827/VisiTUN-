@@ -16,16 +16,17 @@ This project is a secure, low-level network communication system that:
 
 ## 📂 Project Structure
 
-- crypto/encry_decry.py # AES-GCM encryption and decryption
+- crypto/
+   - encry_decry.py # AES-GCM encryption and decryption
 - facial/
-- - face_encrypt.py # Facial feature extraction and AES key handling
+   - face_encrypt.py # Facial feature extraction and AES key handling
 - network/
-- - tun_interface.py # Virtual TUN interface setup
-- - udp_handler.py # UDP sender and receiver wrappers
+   - tun_interface.py # Virtual TUN interface setup
+   - udp_handler.py # UDP sender and receiver wrappers
 - comms/
-- - sender.py # Sender script: reads from tun0, encrypts and sends
-- - receiver.py # Receiver script: receives, decrypts and writes to tun1
-- - send_custom_packet.py # Scapy tool to craft custom packets for testing
+   - sender.py # Sender script: reads from tun0, encrypts and sends
+   - receiver.py # Receiver script: receives, decrypts and writes to tun1
+   - send_custom_packet.py # Scapy tool to craft custom packets for testing
 - requirements.txt
 - README.md
 
