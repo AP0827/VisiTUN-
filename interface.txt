@@ -1,0 +1,57 @@
+ADD INTERFACE
+sudo ip addr add 10.8.0.1/24 dev tun0
+sudo ip link set dev tun0 up
+
+
+
+🔌 1. UDP Communication Settings
+✅ Common Between sender.py and receiver.py
+Parameter	Value	Usage
+DEST_IP	127.0.0.1	Loopback IP for local testing
+DEST_PORT	9090	UDP destination port (receiver listens)
+SRC_PORT	1234	Optional (used in Scapy test tool)
+
+🌐 2. TUN Interface Configuration
+TUN interfaces simulate a network device that sends/receives raw IP packets.
+
+Each process (sender or receiver) creates and works with its own TUN interface.
+
+✅ In sender.py
+Interface	Default Name	Assigned IP (example)	Notes
+tun0	via create_tun_interface()	10.8.0.1	Used to read raw IP packets, encrypt and send them
+
+✅ In receiver.py
+Interface	Default Name	Assigned IP (example)	Notes
+tun1	via create_tun_interface()	10.8.0.2	Used to write decrypted IP packets
+
+You can manually assign IPs using these terminal commands (for testing):
+SET ROUTE
+sudo ip route add 10.8.0.2 dev tun0
+
+
+# On sender side
+sudo ip addr add 10.8.0.1/24 dev tun0
+sudo ip link set dev tun0 up
+DELETE INTERFACE
+sudo ip link set tun0 down
+sudo ip addr del 10.8.0.1/24 dev tun0
+
+# On receiver side
+sudo ip addr add 10.8.0.2/24 dev tun1
+sudo ip link set dev tun1 up
+DELETE INTERFACE
+sudo ip link set tun1 down
+sudo ip addr del 10.8.0.2/24 dev tun1
+
+These IPs are only for internal routing of your tunnel, not external internet access.
+
+🔍 3. Face Key Generation & Auth
+Component	Value/Path	Notes
+face.jpg	Face image file	Used to generate AES key on sender side
+live_image.jpg	Live captured webcam image	Used to verify and regenerate key on receiver side
+
+⚙️ Miscellaneous
+Item	Value	Purpose
+AES Key Length	256-bit (32 bytes)	Used for AES-GCM encryption
+Nonce Length	16 bytes	Used to initialize AES-GCM
+Max Packet Size	2048 bytes	Read/write size from TUN/UDP
