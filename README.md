@@ -138,13 +138,6 @@ You can use Scapy or applications to generate actual IP traffic for the sender t
 - 📊 Logging system and dashboard for visualizing decrypted payloads
 - 🌐 Remote connection support (currently local or bridged virtual network)
 
-## ✅ Requirements
-
-See requirements.txt:
-
-```
-pip install -r requirements.txt
-```
 
 ## 🧠 Credits
 
