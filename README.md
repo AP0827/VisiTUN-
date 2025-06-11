@@ -41,25 +41,25 @@ This project is a secure, low-level network communication system that:
    ```
    Create and activate a virtual environment:
 
-```
-python3 -m venv venv
-source venv/bin/activate
-```
+   ```
+   python3 -m venv venv
+   source venv/bin/activate
+   ```
 
-Install dependencies:
+2. Install dependencies:
 
-```
-pip install -r requirements.txt
-```
+   ```
+   pip install -r requirements.txt
+   ```
 
-✅ Ensure you're running on Linux/WSL with sudo access and TUN support.
+   ✅ Ensure you're running on Linux/WSL with sudo access and TUN support.
 
-🔧 TUN Setup (WSL/Linux)
-Enable TUN if not already:
+3. TUN Setup (WSL/Linux)
+   Enable TUN if not already:
 
-```
-sudo modprobe tun
-```
+   ```
+   sudo modprobe tun
+   ```
 
 ## 🧪 Usage
 
@@ -113,8 +113,16 @@ Enter text messages and they’ll be encrypted and sent.
 
 ## 🔍 How It Works
 
-sender.py reads raw IP packets from tun0, encrypts them using an AES key derived from facial features, and sends them over UDP.
-receiver.py listens on UDP, decrypts the packets using the same facial key, and injects them into tun1.
+- sender.py reads raw IP packets from tun0
+- encrypts them using an AES key derived from facial features
+- sends them over UDP
+
+
+- receiver.py listens on UDP
+- decrypts the packets using the same/live facial key
+- injects them into tun1.
+
+
 You can use Scapy or applications to generate actual IP traffic for the sender to encrypt.
 
 ## ⚠️ Notes
@@ -149,6 +157,7 @@ pip install -r requirements.txt
 ## 🙋‍♂️ Author
 
 Aayush Pandey
+
 Project for educational and security research.
 
 ---
