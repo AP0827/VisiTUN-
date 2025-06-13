@@ -1,11 +1,15 @@
 import socket
 import os
 import time
+from getpass import getpass
 from network.tun_interface import create_tun_interface
 from network.udp_handler import UDPReceiver
 from crypto.encry_decry import decrypt
-from facial.face_encrypt import load_key
+from facial.face_encrypt import load_key, droid_cam_video
+from facial.landmark_encoding import get_features, get_landmarks, save_key, hybrid_key
 
+img_filename='live_captured_face.jpg'
+key_filename='live_key.bin'
 TUN_BUFFER_SIZE = 2048
 LISTEN_PORT = 9090
 
@@ -25,7 +29,15 @@ def extract_payload(ip_packet):
         return "[!] Payload decode failed"
 
 def main():
-    aes_key = load_key('face_key.bin')
+    droid_cam_video(img_filename)
+    landmarks=get_landmarks(img_filename)
+    if landmarks is None:
+        print("❌ No landmarks found. Try again.")
+        return
+    features=get_features(landmarks)
+    password = getpass("🔐 Enter your password : ")
+    hybrid_key(features,filename = key_filename, password = password)
+    aes_key = load_key('live_key.bin')
     if not aes_key:
         print("[❌] No key loaded. Exiting.")
         return

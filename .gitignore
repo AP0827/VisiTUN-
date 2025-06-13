@@ -3,3 +3,7 @@ captured_image.jpg
 live_image.jpg
 live_key.bin
 live_check.jpg
+face.jpg
+live_key.jpg
+face_key.jpg
+shape_predictor_68_face_landmarks.dat
