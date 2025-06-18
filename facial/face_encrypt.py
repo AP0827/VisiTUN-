@@ -10,7 +10,7 @@ KEY_FILE = 'face_key.bin'
 DISTANCE_THRESHOLD = 0.6
 
 
-droid_cam_url = "http://192.168.198.202:4747/video"
+droid_cam_url = "http://192.168.222.230:4747/video"
 
 
 def face_to_encoding(img_path: str) -> np.ndarray:
