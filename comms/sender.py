@@ -29,7 +29,6 @@ def main():
     nose_bin = quantize(features[1], min_val=0.40, max_val=0.80, num_bins=5)
 
     aes_key = bin_key(eye_bin, nose_bin, password=password, filename=key_filename)
-    # aes_key = hybrid_key(features=features,filename=key_filename,password=password)
 
     tun_fd, tun_name = create_tun_interface()
     print(f"[+] TUN interface '{tun_name}' created and ready.")

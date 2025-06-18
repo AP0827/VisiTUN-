@@ -5,28 +5,31 @@
 This project is a secure, low-level network communication system that:
 
 - Creates virtual TUN interfaces on sender and receiver sides.
-- Encrypts data packets using AES-GCM with a key derived from facial features.
+- Encrypts data packets using AES-GCM with a key derived from facial landmark geometry (not volatile encodings).
 - Transmits encrypted packets over UDP.
 - Uses the TUN interface to simulate actual IP packet transmission.
-- Decrypts packets only if the correct face is authenticated.
+- Decrypts packets only if the correct face and password are used to regenerate the key.
 
 > Only the verified face of the intended user can decrypt the communication, ensuring physical access-level security.
+
+This approach uses quantized facial geometry (like eye distance and nose-to-chin ratio normalized by face width) to produce stable, reproducible values, which are binned into discrete ranges. These bin values, combined with a user password, produce a consistent AES key even with minor facial variation — enabling reliable encryption and decryption.
 
 ---
 
 ## 📂 Project Structure
 
 - crypto/
-   - encry_decry.py # AES-GCM encryption and decryption
+  - encry_decry.py # AES-GCM encryption and decryption
 - facial/
-   - face_encrypt.py # Facial feature extraction and AES key handling
+  - face_encrypt.py # Facial feature extraction and AES key handling
+  - landmark_encoding.py # Extract facial landmarks and quantize them to create the key
 - network/
-   - tun_interface.py # Virtual TUN interface setup
-   - udp_handler.py # UDP sender and receiver wrappers
+  - tun_interface.py # Virtual TUN interface setup
+  - udp_handler.py # UDP sender and receiver wrappers
 - comms/
-   - sender.py # Sender script: reads from tun0, encrypts and sends
-   - receiver.py # Receiver script: receives, decrypts and writes to tun1
-   - send_custom_packet.py # Scapy tool to craft custom packets for testing
+  - sender.py # Sender script: reads from tun0, encrypts and sends
+  - receiver.py # Receiver script: receives, decrypts and writes to tun1
+  - send_custom_packet.py # Scapy tool to craft custom packets for testing
 - requirements.txt
 - README.md
 
@@ -35,10 +38,12 @@ This project is a secure, low-level network communication system that:
 ## 📦 Installation
 
 1. Clone this repo:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/face-secure-tun.git
    cd face-secure-tun
    ```
+
    Create and activate a virtual environment:
 
    ```
@@ -63,17 +68,7 @@ This project is a secure, low-level network communication system that:
 
 ## 🧪 Usage
 
-### 1️⃣ Generate a Face-Based AES Key
-
-Run this once to generate a key from your face:
-
-```
-python3 -c "from facial.face_encrypt import face_cap_ret_key; face_cap_ret_key()"
-```
-
-This creates a file called face_key.bin or live_key.bin.
-
-### 2️⃣ Start the Receiver
+### 1️⃣ Start the Receiver
 
 ```
 sudo python3 receiver.py
@@ -86,7 +81,9 @@ sudo ip addr add 10.8.0.1/24 dev tun1
 sudo ip link set tun1 up
 ```
 
-### 3️⃣ Start the Sender
+The script will ask for your facial image (captured from DroidCam or webcam) and a password. It uses quantized landmark distances (e.g., eye distance, nose-to-chin length) mapped to discrete bins and hashed along with the password to derive a reproducible AES key.
+
+### 2️⃣ Start the Sender
 
 In a separate terminal:
 
@@ -101,7 +98,9 @@ sudo ip addr add 10.8.0.2/24 dev tun0
 sudo ip link set tun0 up
 ```
 
-### 4️⃣ Send Custom Test Packet
+The sender script will also capture a facial image and request the same password. If the facial geometry and password match those used on the receiver, communication will succeed.
+
+### 3️⃣ Send Custom Test Packet
 
 To test from user-level interface without TUN injection:
 
@@ -109,7 +108,7 @@ To test from user-level interface without TUN injection:
 sudo python3 send_custom_packet.py
 ```
 
-Enter text messages and they’ll be encrypted and sent.
+Type a message, and it will be encrypted, transmitted via UDP, decrypted on the other end, and shown as the payload.
 
 ## 🔍 How It Works
 
@@ -117,11 +116,9 @@ Enter text messages and they’ll be encrypted and sent.
 - encrypts them using an AES key derived from facial features
 - sends them over UDP
 
-
 - receiver.py listens on UDP
 - decrypts the packets using the same/live facial key
 - injects them into tun1.
-
 
 You can use Scapy or applications to generate actual IP traffic for the sender to encrypt.
 
@@ -137,7 +134,6 @@ You can use Scapy or applications to generate actual IP traffic for the sender t
 - 📸 Webcam fallback for facial key generation
 - 📊 Logging system and dashboard for visualizing decrypted payloads
 - 🌐 Remote connection support (currently local or bridged virtual network)
-
 
 ## 🧠 Credits
 

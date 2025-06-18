@@ -42,8 +42,6 @@ def main():
     nose_bin = quantize(features[1], min_val=0.40, max_val=0.80, num_bins=5)
 
     aes_key = bin_key(eye_bin, nose_bin, password=password, filename=key_filename)
-    
-    # hybrid_key(features,filename = key_filename, password = password)
 
     aes_key = load_key('live_key.bin')
     if not aes_key:
