@@ -1,4 +1,4 @@
-# 🔐 Encrypted TUN Communication with Facial-AES Key Auth
+# Encrypted TUN Communication with Facial-AES Key Auth
 
 ## 🧠 Overview
 
