@@ -2,9 +2,9 @@
 
 ## 🧠 Overview
 
-This project is a secure, low-level network communication system that:
+This project is a **secure, low-level network communication** system that:
 
-- Creates virtual TUN interfaces on sender and receiver sides.
+- Creates **virtual TUN interfaces** on sender and receiver sides.
 - Encrypts data packets using AES-GCM with a key derived from facial landmark geometry (not volatile encodings).
 - Transmits encrypted packets over UDP.
 - Uses the TUN interface to simulate actual IP packet transmission.
@@ -12,7 +12,7 @@ This project is a secure, low-level network communication system that:
 
 > Only the verified face of the intended user can decrypt the communication, ensuring physical access-level security.
 
-This approach uses quantized facial geometry (like eye distance and nose-to-chin ratio normalized by face width) to produce stable, reproducible values, which are binned into discrete ranges. These bin values, combined with a user password, produce a consistent AES key even with minor facial variation — enabling reliable encryption and decryption.
+This approach uses **quantized facial geometry** (like eye distance and nose-to-chin ratio normalized by face width) to produce **stable**, **reproducible** values, which are binned into discrete ranges. These bin values, **combined with a user password**, produce a **consistent AES key** even with minor facial variation — enabling reliable encryption and decryption.
 
 ---
 
