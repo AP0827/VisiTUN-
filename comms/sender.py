@@ -4,7 +4,7 @@ from getpass import getpass
 from network.tun_interface import create_tun_interface
 from network.udp_handler import UDPSender
 from crypto.encry_decry import encrypt
-from facial.face_encrypt import load_key, encoding_to_key, droid_cam_video
+from facial.face_encrypt import load_key, encoding_to_key, cam_video
 from facial.landmark_encoding import get_features,get_landmarks, hybrid_key, quantize, bin_key
 
 

@@ -10,7 +10,6 @@ KEY_FILE = 'face_key.bin'
 DISTANCE_THRESHOLD = 0.6
 
 
-droid_cam_url = "http://192.168.222.230:4747/video"
 
 
 def face_to_encoding(img_path: str) -> np.ndarray:
@@ -61,8 +60,8 @@ def load_key(filename='face_key.bin') -> bytes:
     
 
 
-def droid_cam_video(filename="captured_image.jpg"):
-    im = cv2.VideoCapture(droid_cam_url)
+def cam_video(filename="captured_image.jpg"):
+    im = cv2.VideoCapture(0)
     print("Press 's' to capture 📷")
 
     while True:
