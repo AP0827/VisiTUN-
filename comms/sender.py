@@ -16,7 +16,7 @@ DEST_PORT = 9090
 TUN_BUFFER_SIZE = 2048
 
 def main():
-    droid_cam_video(img_filename)
+    cam_video(img_filename)
     landmarks = get_landmarks('face.jpg')
     if landmarks is None:
         print("❌ No landmarks found. Try again.")
@@ -39,6 +39,8 @@ def main():
     while True:
         try:
             packet = os.read(tun_fd, TUN_BUFFER_SIZE)
+            if packet[0] >> 4 != 4:
+                continue
             print(f"[🐾] Read from TUN: {len(packet)} bytes")
             ciphertext, nonce = encrypt(packet, aes_key)
 

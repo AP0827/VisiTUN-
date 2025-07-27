@@ -6,12 +6,52 @@ from network.tun_interface import create_tun_interface
 from network.udp_handler import UDPReceiver
 from crypto.encry_decry import decrypt
 from facial.face_encrypt import load_key, cam_video
-from facial.landmark_encoding import get_features, get_landmarks, hybrid_key, quantize, bin_key
+from facial.landmark_encoding import get_features, get_landmarks, quantize, bin_key
+from threading import Thread, Lock
 
-img_filename='live_captured_face.jpg'
-key_filename='live_key.bin'
+img_filename = 'live_captured_face.jpg'
+key_filename = 'live_key.bin'
 TUN_BUFFER_SIZE = 2048
 LISTEN_PORT = 9090
+
+auth_lock = Lock()
+shared_state = {
+    "aes_key": None,
+    "authenticated": False,
+    "terminate": False
+}
+
+def authenticate_face(shared_state, password, interval=5.0):
+    while not shared_state["terminate"]:
+        time.sleep(interval)
+
+        cam_video(img_filename)
+        landmarks = get_landmarks(img_filename)
+
+        if landmarks is None:
+            print("❌ Either No face or Multiple people. GET OUT OR GET BACK HERE.")
+            continue
+
+        try:
+            features = get_features(landmarks=landmarks)
+
+            eye_bin = quantize(features[0], min_val=0.30, max_val=0.52, num_bins=5)
+            nose_len_bin = quantize(features[1], min_val=0.45, max_val=0.70, num_bins=5)
+            nose_wid_bin = quantize(features[2], min_val=0.25, max_val=0.45, num_bins=5)
+            v_shape_bin = quantize(features[3], min_val=1.5, max_val=2.3, num_bins=5)
+
+            _ = bin_key(eye_bin, nose_len_bin, nose_wid_bin, v_shape_bin, password=password, filename=key_filename)
+            new_key = load_key(key_filename)
+            with auth_lock:
+                shared_state["aes_key"] = new_key
+                shared_state["authenticated"] = True
+
+            print("✅ Face authenticated successfully.")
+
+        except Exception as e:
+            print(f"[Auth Error] {e}")
+            with auth_lock:
+                shared_state["authenticated"] = False
 
 def extract_payload(ip_packet):
     try:
@@ -29,63 +69,61 @@ def extract_payload(ip_packet):
         return "[!] Payload decode failed"
 
 def main():
-    droid_cam_video(img_filename)
-    landmarks = get_landmarks(img_filename)
-    if landmarks is None:
-        print("❌ No landmarks found. Try again.")
-        return
+    print("📷 Adjust your camera, then press 'q' to capture.")
+    cam_video(img_filename)
 
-    features = get_features(landmarks=landmarks)
-    password = getpass("🔑 Enter the password of the AES Key...")
+    password = getpass("🔑 Enter your AES password: ")
+    print("🔁 Starting background face authentication...")
 
-    eye_bin = quantize(features[0], min_val=0.25, max_val=0.55, num_bins=5)
-    nose_bin = quantize(features[1], min_val=0.40, max_val=0.80, num_bins=5)
-
-    aes_key = bin_key(eye_bin, nose_bin, password=password, filename=key_filename)
-
-    aes_key = load_key('live_key.bin')
-    if not aes_key:
-        print("[❌] No key loaded. Exiting.")
-        return
+    auth_thread = Thread(target=authenticate_face, args=(shared_state, password), daemon=True)
+    auth_thread.start()
 
     tun_fd, tun_name = create_tun_interface('tun1')
-    print(f"[⚙️] TUN interface '{tun_name}' created. Configure it in another terminal.")
+    print(f"[⚙️] TUN interface '{tun_name}' created. Configure it manually.")
 
-    input("[⏳] Press Enter when ready to receive packets...")
+    input("[⏳] Press Enter when ready to start packet reception...")
 
     sock = UDPReceiver(listen_port=LISTEN_PORT)
-    sock.sock.settimeout(1.0)  # Set timeout to avoid indefinite blocking
+    sock.sock.settimeout(1.0)
 
-    print(f"[*] Listening on UDP port {LISTEN_PORT}... Press Ctrl+C to stop.\n")
+    print(f"📡 Listening on UDP port {LISTEN_PORT}. Press Ctrl+C to exit.\n")
 
-    while True:
-        try:
-            packet = sock.receive()
+    try:
+        while True:
+            packet = None
+            try:
+                packet = sock.receive()
+            except socket.timeout:
+                continue
+
             if not packet or len(packet) < 12:
-                continue  # Ignore empty or invalid packets
+                continue
 
             nonce = packet[:12]
             ciphertext = packet[12:]
 
-            decrypted_data = decrypt(ciphertext, nonce, aes_key)
+            with auth_lock:
+                if not shared_state["authenticated"]:
+                    print("[🔒] Skipping packet — not authenticated.")
+                    continue
+                current_key = shared_state["aes_key"]
+
+            decrypted_data = decrypt(ciphertext, nonce, current_key)
             if not decrypted_data:
-                print("[!] Failed to decrypt packet.")
+                print("[❌] Packet decryption failed.")
                 continue
 
             payload = extract_payload(decrypted_data)
-            print(f"[📥] Decrypted packet ({len(decrypted_data)} bytes) — Payload: {payload}")
+            print(f"[📥] Decrypted packet ({len(decrypted_data)} bytes): {payload}")
 
             os.write(tun_fd, decrypted_data)
 
-        except socket.timeout:
-            # No packet received — just loop silently
-            continue
-        except KeyboardInterrupt:
-            print("\n[🔴] Receiver stopped by user.")
-            break
-        except Exception as e:
-            print(f"[⚠️] Unexpected error: {e}")
-            time.sleep(0.5)
+    except KeyboardInterrupt:
+        print("\n[🔴] Receiver terminated by user.")
+
+    finally:
+        shared_state["terminate"] = True
+        print("💤 Shutting down cleanly...")
 
 if __name__ == "__main__":
     main()

@@ -5,9 +5,11 @@ import cv2
 import os 
 import time
 
+
 ENCODING_FILE = 'mean_encoding.npy'
 KEY_FILE = 'face_key.bin'
 DISTANCE_THRESHOLD = 0.6
+didBlink = True
 
 
 
@@ -23,9 +25,6 @@ def face_to_encoding(img_path: str) -> np.ndarray:
         print("✅ Face found!")
         return encodings[0]
     
-
-
-
 def encoding_to_key(encodings: np.ndarray) -> bytes:
     # convert array into bytes of data
     encodings_bytes = encodings.tobytes()
@@ -34,7 +33,7 @@ def encoding_to_key(encodings: np.ndarray) -> bytes:
     return hashlib.sha256(encodings_bytes).digest()
 
 
-
+# SAVE AND LOAD KEY
 def save_key(key: bytes, filename='face_key.bin'):
     try:
         with open(filename, 'wb') as f:
@@ -42,9 +41,6 @@ def save_key(key: bytes, filename='face_key.bin'):
         print(f"✅ File saved at {filename} !")
     except Exception as e:
         print(f"❌ Error saving the key : {e}")
-
-
-
 
 def load_key(filename='face_key.bin') -> bytes:
     # Load the cryptographic key from file
@@ -59,10 +55,10 @@ def load_key(filename='face_key.bin') -> bytes:
         return None
     
 
-
+# CAMERA
 def cam_video(filename="captured_image.jpg"):
     im = cv2.VideoCapture(0)
-    print("Press 's' to capture 📷")
+    print("Camera On.")
 
     while True:
         ret, frame = im.read()
@@ -71,23 +67,18 @@ def cam_video(filename="captured_image.jpg"):
         cv2.imshow("Camera",frame)
         
         key = cv2.waitKey(1) & 0xFF
-        if key == ord('s'):
-            print(f"✅ Image captured to file : {filename}")
-            cv2.imwrite(filename, frame)
-        elif key == ord('q'):
+        cv2.imwrite(filename, frame)
+        if key == ord('q'):
             break
     im.release()
     cv2.destroyAllWindows()
     return filename
 
 
-
 def capture_and_save_face(filename="live_check.jpg", seconds=2):
-    cam = cv2.VideoCapture(droid_cam_url)
-    if not cam.isOpened():
-        raise RuntimeError("❌ Could not access DroidCam stream.")
+    cam = cv2.VideoCapture(0)
 
-    print("[📸] Capturing frame from DroidCam...")
+    print("[📸] Capturing frame from Cam...")
 
     start_time = time.time()
     while time.time() - start_time < seconds:
@@ -103,6 +94,8 @@ def capture_and_save_face(filename="live_check.jpg", seconds=2):
     cv2.destroyAllWindows()
 
 
+
+# AVERAGING FACE ENCODINGS
 def enroll_face(n_samples = 5, delay = 2):
     print(f"Capturing {n_samples} of face to generate average encoding key...")
 
@@ -141,13 +134,3 @@ def authenticate_face():
         print("❌ Face Mismatch!")
         return None
         
-
-def face_cap_ret_key():
-    key = authenticate_face()
-    if key:
-        save_key(key)  # Optional: save for reuse in app session
-        print(f"🔐 AES Key (hex): {key.hex()}")
-    return key
-
-
-    return key
