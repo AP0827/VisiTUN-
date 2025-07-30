@@ -13,5 +13,7 @@ CREATE TABLE Messages (
     sender_id INTEGER REFERENCES Users(user_id),
     receiver_id INTEGER REFERENCES Users(user_id),
     message_text TEXT NOT NULL,
+    nonce TEXT NOT NULL,
+    tag TEXT NOT NULL,
     sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

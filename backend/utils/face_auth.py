@@ -19,13 +19,9 @@ import os
 import numpy as np
 from threading import Lock, Thread
 from flask_socketio import SocketIO
-import getpass
 
-PREDICTOR_PATH = "shape_predictor_68_face_landmarks.dat"
-KEY_FILE = 'face_key.bin'
-img_filename = 'live_captured_face.jpg'
-key_filename = 'live_key.bin'
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PREDICTOR_PATH = os.path.join(BASE_DIR, "shape_predictor_68_face_landmarks.dat")
 
 # SAVE AND LOAD KEY
 def save_key(key: bytes, filename='face_key.bin'):
@@ -35,7 +31,6 @@ def save_key(key: bytes, filename='face_key.bin'):
         print(f"✅ File saved at {filename} !")
     except Exception as e:
         print(f"❌ Error saving the key : {e}")
-
 def load_key(filename='face_key.bin') -> bytes:
     # Load the cryptographic key from file
     try:
@@ -65,7 +60,6 @@ def quantize(feature:float, max_val:float, min_val:float, num_bins:int) -> int:
     bin_index = int((feature - min_val) / bin_size)
     # Clamp to valid bin range
     return max(0, min(bin_index, num_bins - 1))
-
 def get_landmarks(filename:str):
     img = cv2.imread(filename)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -76,7 +70,6 @@ def get_landmarks(filename:str):
     shapes = predictor(gray, faces[0])
     landmarks = np.array([[p.x, p.y] for p in shapes.parts()])
     return landmarks
-
 def get_features(landmarks:np.ndarray) -> np.ndarray:
     # EYE DISTANCE
     left_eye = landmarks[39]
@@ -108,13 +101,11 @@ def get_features(landmarks:np.ndarray) -> np.ndarray:
 
     ])
     return features
-
 def bin_key(*bins: int, password, filename: str) -> bytes:
     bin_pass_str = '-'.join(str(b) for b in bins) + password
     key = sha256(bin_pass_str.encode()).digest()
     save_key(key=key, filename=filename)
     return key
-
 def hybrid_key(features:np.ndarray, filename:str, password="1994") -> bytes:
     combined = password.encode()+features.tobytes()
     key = sha256(combined).digest()
@@ -122,17 +113,18 @@ def hybrid_key(features:np.ndarray, filename:str, password="1994") -> bytes:
     return key
 
 auth_lock = Lock()
-shared_state = {
-    "aes_key": None,
-    "authenticated": False,
-    "terminate": False
-}
 socketio = None
+
+def get_img_filename(user_id):
+    return os.path.join(BASE_DIR, f'live_captured_face_{user_id}.jpg')
+def get_key_filename(user_id):
+    return os.path.join(BASE_DIR, f'live_key_{user_id}.bin')
 
 def authenticate_face(shared_state, password, user_id, interval=5.0):
     while not shared_state["terminate"]:
         time.sleep(interval)
-
+        img_filename = get_img_filename(user_id)
+        key_filename = get_key_filename(user_id)
         cam_video(img_filename)
         landmarks = get_landmarks(img_filename)
 
@@ -164,38 +156,3 @@ def authenticate_face(shared_state, password, user_id, interval=5.0):
     print(f"🛑 Stopped auth thread for {user_id}")
     socketio.emit("auth_terminated", {"user_id": user_id}, room=user_id)
 
-
-def continuous_reauth():
-    print("📷 Adjust your camera, then press 'q' to capture.")
-    cam_video(img_filename)
-
-    password = getpass("🔑 Enter your AES password: ")
-    print("🔁 Starting background face authentication...")
-
-    auth_thread = Thread(target=authenticate_face, args=(shared_state, password), daemon=True)
-    auth_thread.start()
-
-    input("[⏳] Press Enter when ready to start packet reception...")
-
-    try:
-        while True:
-            with auth_lock:
-                if not shared_state["authenticated"]:
-                    print("[🔒] Skipping packet — not authenticated.")
-                    continue
-                current_key = shared_state["aes_key"]
-
-            decrypted_data = decrypt(ciphertext, nonce, current_key)
-            if not decrypted_data:
-                print("[❌] Packet decryption failed.")
-                continue
-
-            payload = extract_payload(decrypted_data)
-            print(f"[📥] Decrypted packet ({len(decrypted_data)} bytes): {payload}")
-
-    except KeyboardInterrupt:
-        print("\n[🔴] Receiver terminated by user.")
-
-    finally:
-        shared_state["terminate"] = True
-        print("💤 Shutting down cleanly...")

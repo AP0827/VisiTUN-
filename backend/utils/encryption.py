@@ -8,14 +8,13 @@ from cryptography.exceptions import InvalidTag
 import os
 
 NONCE_SIZE = 12
-
-
 def read_key(filename='face_key.bin'):
     with open(filename, 'rb') as f:
         return f.read()
 
-def encrypt(payload: bytes, key=None)  -> tuple[bytes,bytes]:
+def encrypt(text: str, key=None)  -> tuple[bytes,bytes]:
     nonce = os.urandom(NONCE_SIZE)
+    textBytes = text.encode("utf-8")
     if key is None:
         key = read_key()
     encryptor = Cipher(
@@ -25,12 +24,12 @@ def encrypt(payload: bytes, key=None)  -> tuple[bytes,bytes]:
     ).encryptor()
 
     # Apply the Encryption on the payload
-    ciphertext = encryptor.update(payload) + encryptor.finalize()
+    ciphertext = encryptor.update(textBytes) + encryptor.finalize()
 
     return (nonce + encryptor.tag + ciphertext, nonce)
 
 
-def decrypt(ciphertext: bytes, nonce: bytes, key=None) -> bytes:
+def decrypt(ciphertext: bytes, nonce: bytes, key=None) -> str:
     try: 
         if key is None:
             key = read_key()
@@ -43,7 +42,8 @@ def decrypt(ciphertext: bytes, nonce: bytes, key=None) -> bytes:
             backend=default_backend()
         ).decryptor()
 
-        return decryptor.update(payload) + decryptor.finalize()
+        textBytes = decryptor.update(payload) + decryptor.finalize()
+        return textBytes.decode("utf-8")
     
     
     except InvalidTag:

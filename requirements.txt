@@ -9,4 +9,7 @@ pyroute2
 
 flask
 flask-cors
+flask-socketio
+eventlet
+psycopg2-binary
 
