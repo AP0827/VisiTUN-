@@ -26,15 +26,15 @@ def encrypt(text: str, key=None)  -> tuple[bytes,bytes]:
     # Apply the Encryption on the payload
     ciphertext = encryptor.update(textBytes) + encryptor.finalize()
 
-    return (nonce + encryptor.tag + ciphertext, nonce)
+    return (nonce + encryptor.tag + ciphertext, nonce, encryptor.tag)
 
 
-def decrypt(ciphertext: bytes, nonce: bytes, key=None) -> str:
+def decrypt(tag, ciphertext: str, nonce: bytes, key=None) -> str:
     try: 
         if key is None:
             key = read_key()
-        tag = ciphertext[NONCE_SIZE:NONCE_SIZE+16]
-        payload = ciphertext[NONCE_SIZE+16:]
+        cypherBytes = ciphertext.encode("utf-8")
+        payload = cypherBytes[NONCE_SIZE+16:]
 
         decryptor = Cipher(
             algorithms.AES(key),

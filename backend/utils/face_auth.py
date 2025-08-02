@@ -7,7 +7,6 @@
 # bin_key(*bins: int, password, filename: str) -> bytes
 # hybrid_key(features:np.ndarray, filename:str, password="1994")
 
-
 import numpy as np
 import cv2
 import os 

@@ -7,7 +7,7 @@ from utils import face_auth
 from routes.auth_routes import auth_bp
 from routes.message_routes import msg_bp
 from routes.user_routes import user_bp
-# from routes.socketio_events import register_socket_event
+from routes.socketio_events import register_socket_event
 
 app = Flask(__name__)
 CORS(app)
@@ -27,7 +27,7 @@ app.register_blueprint(msg_bp, url_prefix='/chat')
 app.register_blueprint(user_bp, url_prefix='/user')
 
 # Register socketio events with proper shared state
-# register_socket_event(socketio, face_auth.auth_lock, shared_state)
+register_socket_event(socketio, face_auth.auth_lock, shared_state)
 
 @app.route('/')
 def root():

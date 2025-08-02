@@ -43,6 +43,7 @@ def stop_auth():
 
 @auth_bp.route('/status/<user_id>', methods=["POST"])
 def check_auth():
-    shared_status = current_app.config['shared_status']
+    data = request.get_data()
+    shared_state = current_app.config['shared_status']
     user_id = data.get("user_id")
     return jsonify({"status" : f"{shared_state[user_id]["terminate"]}"})

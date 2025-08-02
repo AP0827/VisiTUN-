@@ -4,7 +4,7 @@ from models.user_model import UserModel
 user_bp = Blueprint('user_bp',__name__)
 user_model = UserModel()
 
-user_bp.route('/register', methods=["POST"])
+@user_bp.route('/register', methods=["POST"])
 def register_user():
     shared_state = current_app.config['shared_state']
     data = request.get_json()
@@ -23,7 +23,7 @@ def register_user():
     }
     return jsonify({"userID" : f"{userID}", "username":f"{username}"})
 
-user_bp.route('/login', methods=["POST"])
+@user_bp.route('/login', methods=["POST"])
 def user_login():
     data = request.get_json()
     username = data.get("username")

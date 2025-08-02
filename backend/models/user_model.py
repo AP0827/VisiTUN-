@@ -4,7 +4,6 @@ import hashlib
 import os
 
 class UserModel:
-
     def __init__(self):
         self.db_config = DB_CONFIG
 
@@ -84,6 +83,7 @@ class UserModel:
                 WHERE user_id = %s
             """
 
+            # We put a comma becase cursor.execute expects a tuple ATLEAST.
             cursor.execute(query,{user_id,})
             user = cursor.fetchone()
 
@@ -102,8 +102,6 @@ class UserModel:
             if conn:
                 conn.close()
             return None
-
-            
     
 
 
