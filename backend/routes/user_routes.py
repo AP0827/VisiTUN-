@@ -19,7 +19,7 @@ def register_user():
     shared_state[userID] = {
         "aes_key" : None,
         "terminate" : False,
-        "authenticate" : False
+        "authenticated" : False
     }
     return jsonify({"userID" : f"{userID}", "username":f"{username}"})
 

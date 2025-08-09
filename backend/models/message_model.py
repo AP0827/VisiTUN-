@@ -45,7 +45,7 @@ class MessageModel:
             cursor = conn.cursor()
 
             query = """
-                SELECT message_id, sender_id, receiver_id message_text, nonce, tag, sent_at FROM Messages
+                SELECT message_id, sender_id, receiver_id, message_text, nonce, tag, sent_at FROM Messages
                 WHERE 
                 (sender_id = %s AND receiver_id = %s)
                 OR
@@ -62,15 +62,16 @@ class MessageModel:
 
             if message :
                 return [
-                        {
-                        'message_id' : message[0],
-                        'sender_id' : message[1],
-                        'receiver_id' : message[2],
-                        'message_text' : message[3],
-                        'nonce' : message[4],
-                        'tag' : message[5],
-                        'time' : message[6]
+                    {
+                        'message_id' : msg[0],
+                        'sender_id' : msg[1],
+                        'receiver_id' : msg[2],
+                        'message_text' : msg[3],
+                        'nonce' : msg[4],
+                        'tag' : msg[5],
+                        'sent_at' : msg[6]
                     }
+                    for msg in message
                 ]
             return None
         except Exception as e:

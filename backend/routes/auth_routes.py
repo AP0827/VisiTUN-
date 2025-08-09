@@ -41,9 +41,14 @@ def stop_auth():
         shared_state.pop(user_id, None)
     return jsonify({"message":"Auth thread stopped"}), 200
 
-@auth_bp.route('/status/<user_id>', methods=["POST"])
-def check_auth():
-    data = request.get_data()
-    shared_state = current_app.config['shared_status']
-    user_id = data.get("user_id")
-    return jsonify({"status" : f"{shared_state[user_id]["terminate"]}"})
+@auth_bp.route('/status/<user_id>', methods=["GET"])
+def check_auth(user_id):
+    shared_state = current_app.config['shared_state']
+    
+    if user_id not in shared_state:
+        return jsonify({"authenticated": False, "error": "User not found"}), 404
+    
+    return jsonify({
+        "authenticated": shared_state[user_id].get("authenticated", False),
+        "terminate": shared_state[user_id].get("terminate", False)
+    })

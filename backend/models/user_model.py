@@ -45,7 +45,7 @@ class UserModel:
             conn = self.get_connection()
             cursor = conn.cursor()
 
-            hashed_password = hashlib.sha256(password.encode).hexdigest()
+            hashed_password = hashlib.sha256(password.encode()).hexdigest()
 
             query = """
                 SELECT user_id, username, profile_picture
@@ -79,12 +79,12 @@ class UserModel:
             cursor = conn.cursor()
 
             query = """
-                SELECT user_id, username, profile_picture FROM User
+                SELECT user_id, username, profile_picture FROM Users
                 WHERE user_id = %s
             """
 
             # We put a comma becase cursor.execute expects a tuple ATLEAST.
-            cursor.execute(query,{user_id,})
+            cursor.execute(query,(user_id,))
             user = cursor.fetchone()
 
             cursor.close()
