@@ -8,3 +8,4 @@ live_key.jpg
 face_key.jpg
 shape_predictor_68_face_landmarks.dat
 reference.txt
+.env
